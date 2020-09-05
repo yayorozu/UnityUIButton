@@ -34,15 +34,8 @@ namespace Yorozu.UI
 			{
 				_type = type;
 				_owner = owner;
-				_index = -1;
 
-				for (var i = 0; i < _owner._base.Modules.Length; i++)
-				{
-					if (owner._base.Modules[i].GetType() != _type)
-						continue;
-
-					_index = i;
-				}
+				UpdateIndex();
 
 				var method = type.GetMethod("DrawEditor", BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
 				if (method == null)
@@ -51,21 +44,16 @@ namespace Yorozu.UI
 					IsOverrideMethod = method == method.GetBaseDefinition();
 			}
 
-			public void Add()
+			public void UpdateIndex()
 			{
-				var m = _owner._base.Modules;
-				ArrayUtility.Add(ref m, (UniButtonModuleAbstract) Activator.CreateInstance(_type));
-				_owner._base.Modules = m;
-				_index = _owner._base.Modules.Length - 1;
-			}
-
-			public void Remove()
-			{
-				var m = _owner._base.Modules;
-				ArrayUtility.RemoveAt(ref m, _index);
-				_owner._base.Modules = m;
 				_index = -1;
-				GUIUtility.ExitGUI();
+				for (var i = 0; i < _owner._base.Modules.Length; i++)
+				{
+					if (_owner._base.Modules[i].GetType() != _type)
+						continue;
+
+					_index = i;
+				}
 			}
 
 			public void Draw()
@@ -80,11 +68,11 @@ namespace Yorozu.UI
 
 			private void DrawProperty(SerializedProperty property)
 			{
-				var depth = -1;
+				var depth = property.depth;
 				var iterator = property.Copy();
-				for (var enterChildren = true; iterator.NextVisible(enterChildren) || depth == -1; enterChildren = false)
+				for (var enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
 				{
-					if (depth != -1 && iterator.depth != depth)
+					if (iterator.depth < depth)
 						return;
 
 					depth = iterator.depth;
@@ -155,12 +143,15 @@ namespace Yorozu.UI
 						if (check.changed)
 						{
 							serializedObject.Update();
-							// Remove
+							var m = _base.Modules;
 							if (_cacheInfos[type].HasComponent)
-								_cacheInfos[type].Remove();
-							// Add
+								ArrayUtility.RemoveAt(ref m, _cacheInfos[type].Index);
 							else
-								_cacheInfos[type].Add();
+								ArrayUtility.Add(ref m, (UniButtonModuleAbstract) Activator.CreateInstance(type));
+							_base.Modules = m;
+
+							foreach (var pair in _cacheInfos)
+								pair.Value.UpdateIndex();
 
 							serializedObject.ApplyModifiedProperties();
 							GUIUtility.ExitGUI();

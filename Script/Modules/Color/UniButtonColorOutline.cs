@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Yorozu.UI
 {
+	[Serializable]
 	public class UniButtonColorOutline : UniButtonColor
 	{
 		[SerializeField]
