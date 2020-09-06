@@ -12,12 +12,21 @@ public class ButtonSample : MonoBehaviour
 
 	private void Awake()
 	{
-		button.SetClickAction(OnClick);
+		button.SetClickAction(Click);
+		if (button.TryGetModule<ButtonModuleLongClick>(out var module))
+		{
+			module.SetAction(LongClick);
+		}
 	}
 
-	private void OnClick()
+	private void Click()
 	{
 		Debug.Log("Click");
+	}
+
+	private void LongClick()
+	{
+		Debug.Log("LongClick");
 	}
 }
 

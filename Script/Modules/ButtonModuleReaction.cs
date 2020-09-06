@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class UniButtonReaction : UniButtonModuleAbstract
+	public class ButtonModuleReaction : UniButtonModuleAbstract
 	{
 		[SerializeField]
 		private ButtonReactionData _data;

@@ -7,42 +7,6 @@ namespace Yorozu.UI
 	[Serializable]
 	public abstract class UniButtonModuleAbstract
 	{
-		protected UniButton _main;
-		protected RectTransform _rect;
-
-		public bool Clickable => _clickable;
-		protected bool _clickable = true;
-
-		public void SetUp(UniButton main)
-		{
-			_main = main;
-			_rect = main.transform as RectTransform;
-			Prepare();
-		}
-
-		public void UpdateFromOwner()
-		{
-			if (_main == null)
-				return;
-
-			Update();
-		}
-
-		protected virtual void Prepare() { }
-
-		protected virtual void Update() { }
-
-		public virtual void SetInteractable(bool enable)
-		{
-		}
-
-		public virtual void Press()
-		{
-		}
-
-		public abstract void OnPointerEnter(PointerEventData eventData);
-
-		public abstract void OnPointerExit(PointerEventData eventData);
 
 #if UNITY_EDITOR
 
@@ -55,5 +19,57 @@ namespace Yorozu.UI
 
 #endif
 
+		protected UniButton _main;
+		protected RectTransform _rect;
+
+		public bool Clickable => _clickable;
+		protected bool _clickable = true;
+		
+		internal void SetUp(UniButton main)
+		{
+			_main = main;
+			_rect = main.transform as RectTransform;
+			Prepare();
+		}
+
+		internal void UpdateFromOwner()
+		{
+			if (_main == null)
+				return;
+
+			Update();
+		}
+
+		protected virtual void Prepare()
+		{
+		}
+
+		protected virtual void Update()
+		{
+		}
+
+		public virtual void SetInteractable(bool enable)
+		{
+		}
+
+		public virtual void Press()
+		{
+		}
+
+		public virtual void OnPointerEnter(PointerEventData eventData)
+		{
+		}
+
+		public virtual void OnPointerExit(PointerEventData eventData)
+		{
+		}
+
+		/// <summary>
+		/// メインボタンのクリック処理を無効化できる
+		/// </summary>
+		public virtual bool IsBreakClick()
+		{
+			return false;
+		}
 	}
 }

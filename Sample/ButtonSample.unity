@@ -121,6 +121,22 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &86934743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aa770cdedfeb4ae2a595a01f2b082f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ReactionTime: 0.3
+  ReactionScale: 0.9
+  ReactionEase: 17
+  ReturnEase: 27
 --- !u!1 &291618651
 GameObject:
   m_ObjectHideFlags: 0
@@ -300,17 +316,13 @@ MonoBehaviour:
   references:
     version: 1
     00000000:
-      type: {class: UniButtonColorGraphic, ns: Yorozu.UI, asm: Assembly-CSharp}
+      type: {class: ButtonModuleLongClick, ns: Yorozu.UI, asm: Assembly-CSharp}
       data:
-        _fadeDuration: 0.1
-        _graphics: []
-        _colorData: {fileID: 0}
+        _handleTime: 1
     00000001:
-      type: {class: UniButtonColorOutline, ns: Yorozu.UI, asm: Assembly-CSharp}
+      type: {class: ButtonModuleReaction, ns: Yorozu.UI, asm: Assembly-CSharp}
       data:
-        _fadeDuration: 0.1
-        _outlines: []
-        _colorData: {fileID: 0}
+        _data: {fileID: 86934743}
 --- !u!114 &432674145
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -29,12 +29,20 @@ namespace Yorozu.UI
 
 		protected override void Awake()
 		{
+			UniButtonManager.Register(this);
 			base.Awake();
 			transition = Transition.None;
 			_isPress = false;
 
 			foreach (var part in _modules)
 				part.SetUp(this);
+		}
+
+		protected override void OnDestroy()
+		{
+			base.OnDestroy();
+			UniButtonManager.Unregister(this);
+			_clickAction = null;
 		}
 
 		private void Update()
@@ -73,8 +81,17 @@ namespace Yorozu.UI
 			_clickAction = null;
 		}
 
+		public void DoClick()
+		{
+			_clickAction?.Invoke();
+		}
+
 		private void Press()
 		{
+			// 連打同時押し対応
+			if (!UniButtonManager.Clickable)
+				return;
+
 			if (_waitPress)
 				return;
 
@@ -87,6 +104,7 @@ namespace Yorozu.UI
 			foreach (var part in _modules)
 				part.Press();
 
+			UniButtonManager.ClickRegister();
 			StartCoroutine(PressImpl());
 		}
 
@@ -95,9 +113,17 @@ namespace Yorozu.UI
 			_waitPress = true;
 			// 全パーツがクリック処理するまで待つ
 			foreach (var part in _modules)
-				yield return new WaitUntil(() => part.Clickable);
+			{
+				if (part.IsBreakClick())
+				{
+					_waitPress = false;
+					yield break;
+				}
 
-			_clickAction?.Invoke();
+				yield return new WaitUntil(() => part.Clickable);
+			}
+
+			DoClick();
 			_waitPress = false;
 		}
 
