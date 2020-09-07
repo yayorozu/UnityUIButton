@@ -17,7 +17,7 @@ namespace Yorozu.UI
 
 		protected override void SetColor(float t, ButtonColorType current, ButtonColorType next)
 		{
-			if (_graphics.IsNullOrEmpty() || _colorData == null)
+			if (_graphics.Length <= 0 || _colorData == null)
 				return;
 
 			var color = Color.Lerp(_colorData.GetColor(current), _colorData.GetColor(next), t);
@@ -25,7 +25,7 @@ namespace Yorozu.UI
 			{
 				if (_graphics[i] == null)
 					continue;
-				if (_caches == null || _caches.Length <= i || _caches[i] == Const.COLOR_WHITE)
+				if (_caches == null || _caches.Length <= i || _caches[i] == Color.white)
 				{
 					_graphics[i].color = color;
 					continue;
@@ -37,7 +37,7 @@ namespace Yorozu.UI
 
 		protected override void Cache()
 		{
-			if (_graphics.IsNullOrEmpty())
+			if (_graphics.Length <= 0)
 				return;
 
 			if (_caches == null || _caches.Length != _graphics.Length)

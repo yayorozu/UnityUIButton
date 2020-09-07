@@ -23,8 +23,9 @@ namespace Yorozu.UI
 		protected RectTransform _rect;
 
 		public bool Clickable => _clickable;
+		[SerializeField, HideInInspector]
 		protected bool _clickable = true;
-		
+
 		internal void SetUp(UniButton main)
 		{
 			_main = main;

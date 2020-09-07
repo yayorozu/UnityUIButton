@@ -8,7 +8,7 @@ namespace Yorozu.UI
 	public class UniButtonColorOutline : UniButtonColor
 	{
 		[SerializeField]
-		private Outline[] _outlines;
+		private Outline[] _outlines = new Outline[0];
 
 		[SerializeField]
 		private ButtonColorData _colorData;
@@ -17,7 +17,7 @@ namespace Yorozu.UI
 
 		protected override void SetColor(float t, ButtonColorType current, ButtonColorType next)
 		{
-			if (_outlines.IsNullOrEmpty() || _colorData == null)
+			if (_outlines.Length <= 0 || _colorData == null)
 				return;
 
 			var color = Color.Lerp(_colorData.GetColor(current), _colorData.GetColor(next), t);
@@ -26,7 +26,7 @@ namespace Yorozu.UI
 				if (_outlines[i] == null)
 					continue;
 
-				if (_caches == null || _caches.Length <= i || _caches[i] == Const.COLOR_WHITE)
+				if (_caches == null || _caches.Length <= i || _caches[i] == Color.white)
 				{
 					_outlines[i].effectColor = color;
 					continue;

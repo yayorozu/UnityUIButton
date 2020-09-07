@@ -27,14 +27,14 @@ namespace Yorozu.UI
 		{
 			_fadeTime = 0f;
 			_currentColorType = _nextColorType;
-			_nextColorType = ButtonColorType.Normal;
+			_nextColorType = ButtonColorType.Pressed;
 		}
 
 		public override void OnPointerExit(PointerEventData eventData)
 		{
 			_fadeTime = 0f;
 			_currentColorType = _nextColorType;
-			_nextColorType = ButtonColorType.Pressed;
+			_nextColorType = ButtonColorType.Normal;
 		}
 
 		protected override void Prepare()

@@ -20,6 +20,14 @@ namespace Yorozu.UI
 			set => _modules = value;
 		}
 
+		protected override void OnValidate()
+		{
+			base.OnValidate();
+
+			foreach (var part in _modules)
+				part.SetUp(this);
+		}
+
 #endif
 
 		private bool _isPress;
@@ -111,16 +119,21 @@ namespace Yorozu.UI
 		private IEnumerator PressImpl()
 		{
 			_waitPress = true;
-			// 全パーツがクリック処理するまで待つ
-			foreach (var part in _modules)
+			while (true)
 			{
-				if (part.IsBreakClick())
+				// 全パーツがクリック処理するまで待つ
+				foreach (var part in _modules)
 				{
-					_waitPress = false;
-					yield break;
-				}
+					if (part.IsBreakClick())
+					{
+						_waitPress = false;
+						yield break;
+					}
 
-				yield return new WaitUntil(() => part.Clickable);
+					if (!part.Clickable)
+						continue;
+				}
+				break;
 			}
 
 			DoClick();
