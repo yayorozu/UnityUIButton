@@ -7,14 +7,14 @@ using UnityEngine.UI;
 
 namespace Yorozu.UI
 {
-	public class UniButton : Selectable, IPointerClickHandler, IEventSystemHandler
+	public class YorozuButton : Selectable, IPointerClickHandler, IEventSystemHandler
 	{
 		[SerializeReference]
-		private UniButtonModuleAbstract[] _modules = new UniButtonModuleAbstract[0];
+		private YorozuButtonModuleAbstract[] _modules = new YorozuButtonModuleAbstract[0];
 
 #if UNITY_EDITOR
 
-		internal UniButtonModuleAbstract[] Modules
+		internal YorozuButtonModuleAbstract[] Modules
 		{
 			get => _modules;
 			set => _modules = value;
@@ -37,7 +37,7 @@ namespace Yorozu.UI
 
 		protected override void Awake()
 		{
-			UniButtonManager.Register(this);
+			YorozuButtonManager.Register(this);
 			base.Awake();
 			transition = Transition.None;
 			_isPress = false;
@@ -49,7 +49,7 @@ namespace Yorozu.UI
 		protected override void OnDestroy()
 		{
 			base.OnDestroy();
-			UniButtonManager.Unregister(this);
+			YorozuButtonManager.Unregister(this);
 			_clickAction = null;
 		}
 
@@ -59,7 +59,7 @@ namespace Yorozu.UI
 				module.UpdateFromOwner();
 		}
 
-		public bool TryGetModule<T>(out T findModule) where T : UniButtonModuleAbstract
+		public bool TryGetModule<T>(out T findModule) where T : YorozuButtonModuleAbstract
 		{
 			var data = _modules.FirstOrDefault(p => p.GetType() == typeof(T));
 			if (data == null)
@@ -97,7 +97,7 @@ namespace Yorozu.UI
 		private void Press()
 		{
 			// 連打同時押し対応
-			if (!UniButtonManager.Clickable)
+			if (!YorozuButtonManager.Clickable)
 				return;
 
 			if (_waitPress)
@@ -112,7 +112,7 @@ namespace Yorozu.UI
 			foreach (var part in _modules)
 				part.Press();
 
-			UniButtonManager.ClickRegister();
+			YorozuButtonManager.ClickRegister();
 			StartCoroutine(PressImpl());
 		}
 

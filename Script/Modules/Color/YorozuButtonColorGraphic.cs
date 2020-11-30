@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class UniButtonColorGraphic : UniButtonColor
+	public class YorozuButtonColorGraphic : YorozuButtonColor
 	{
 		[SerializeField]
 		private Graphic[] _graphics = new Graphic[0];

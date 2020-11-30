@@ -4,7 +4,7 @@ using Yorozu.UI;
 public class ButtonSample : MonoBehaviour
 {
 	[SerializeField]
-	private UniButton button;
+	private YorozuButton button;
 
 	private void Awake()
 	{

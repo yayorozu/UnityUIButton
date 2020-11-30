@@ -2,11 +2,11 @@ using System.Collections.Generic;
 
 namespace Yorozu.UI
 {
-	public static class UniButtonManager
+	public static class YorozuButtonManager
 	{
-		private static List<UniButton> _activeButtons = new List<UniButton>(20);
+		private static List<YorozuButton> _activeButtons = new List<YorozuButton>(20);
 
-		public static IEnumerable<UniButton> Buttons => _activeButtons;
+		public static IEnumerable<YorozuButton> Buttons => _activeButtons;
 
 		private static float _clickLockTime = 0.5f;
 
@@ -20,7 +20,7 @@ namespace Yorozu.UI
 		/// </summary>
 		internal static bool Clickable => UnityEngine.Time.realtimeSinceStartup - _lastClickTime > _clickLockTime;
 
-		internal static void Register(UniButton button)
+		internal static void Register(YorozuButton button)
 		{
 			if (_activeButtons.Contains(button))
 				return;
@@ -28,7 +28,7 @@ namespace Yorozu.UI
 			_activeButtons.Add(button);
 		}
 
-		internal static void Unregister(UniButton button)
+		internal static void Unregister(YorozuButton button)
 		{
 			if (!_activeButtons.Contains(button))
 				return;

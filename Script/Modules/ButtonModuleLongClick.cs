@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class ButtonModuleLongClick : UniButtonModuleAbstract
+	public class ButtonModuleLongClick : YorozuButtonModuleAbstract
 	{
 		[SerializeField]
 		private float _handleTime = 1f;

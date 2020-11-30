@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public abstract class UniButtonModuleAbstract
+	public abstract class YorozuButtonModuleAbstract
 	{
 
 #if UNITY_EDITOR
@@ -13,20 +13,20 @@ namespace Yorozu.UI
 		/// <summary>
 		/// 必要なら override する
 		/// </summary>
-		public virtual void DrawEditor(UniButton button, UnityEditor.SerializedProperty property)
+		public virtual void DrawEditor(YorozuButton button, UnityEditor.SerializedProperty property)
 		{
 		}
 
 #endif
 
-		protected UniButton _main;
+		protected YorozuButton _main;
 		protected RectTransform _rect;
 
 		public bool Clickable => _clickable;
 		[SerializeField, HideInInspector]
 		protected bool _clickable = true;
 
-		internal void SetUp(UniButton main)
+		internal void SetUp(YorozuButton main)
 		{
 			_main = main;
 			_rect = main.transform as RectTransform;

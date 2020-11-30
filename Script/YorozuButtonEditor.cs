@@ -9,10 +9,10 @@ using UnityEngine;
 
 namespace Yorozu.UI
 {
-	[CustomEditor(typeof(UniButton), false)]
-	public class UniButtonEditor : Editor
+	[CustomEditor(typeof(YorozuButton), false)]
+	public class YorozuButtonEditor : Editor
 	{
-		private UniButton _base;
+		private YorozuButton _base;
 		private Type[] _types;
 		private SerializedProperty _moduleProperty;
 		private SerializedProperty _interactable;
@@ -22,15 +22,15 @@ namespace Yorozu.UI
 		{
 			public int Index => _index;
 			public bool HasComponent => _index >= 0;
-			public UniButtonModuleAbstract Instance => _owner._base.Modules[_index];
+			public YorozuButtonModuleAbstract Instance => _owner._base.Modules[_index];
 
-			private readonly UniButtonEditor _owner;
+			private readonly YorozuButtonEditor _owner;
 			private readonly Type _type;
 
 			private int _index;
 			public readonly bool IsOverrideMethod;
 
-			public TypeInfo(Type type, UniButtonEditor owner)
+			public TypeInfo(Type type, YorozuButtonEditor owner)
 			{
 				_type = type;
 				_owner = owner;
@@ -88,12 +88,12 @@ namespace Yorozu.UI
 
 		protected void OnEnable()
 		{
-			_base = target as UniButton;
+			_base = target as YorozuButton;
 
 			// 必要タイプを取得
 			_types = AppDomain.CurrentDomain.GetAssemblies()
 				.SelectMany(a => a.GetTypes())
-				.Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(UniButtonModuleAbstract)))
+				.Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(YorozuButtonModuleAbstract)))
 				.ToArray();
 
 			_moduleProperty = serializedObject.FindProperty("_modules");
@@ -150,7 +150,7 @@ namespace Yorozu.UI
 							if (_cacheInfos[type].HasComponent)
 								ArrayUtility.RemoveAt(ref m, _cacheInfos[type].Index);
 							else
-								ArrayUtility.Add(ref m, (UniButtonModuleAbstract) Activator.CreateInstance(type));
+								ArrayUtility.Add(ref m, (YorozuButtonModuleAbstract) Activator.CreateInstance(type));
 							_base.Modules = m;
 
 							foreach (var pair in _cacheInfos)

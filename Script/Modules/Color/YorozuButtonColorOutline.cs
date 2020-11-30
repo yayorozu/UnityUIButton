@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class UniButtonColorOutline : UniButtonColor
+	public class YorozuButtonColorOutline : YorozuButtonColor
 	{
 		[SerializeField]
 		private Outline[] _outlines = new Outline[0];

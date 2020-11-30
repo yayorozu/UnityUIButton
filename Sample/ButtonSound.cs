@@ -6,19 +6,11 @@ using Yorozu.UI;
 namespace Sample
 {
 	[Serializable]
-	public class ButtonSound : UniButtonModuleAbstract
+	public class ButtonSound : YorozuButtonModuleAbstract
 	{
 		public override void Press()
 		{
 			Debug.Log("PlaySound");
-		}
-
-		public override void OnPointerEnter(PointerEventData eventData)
-		{
-		}
-
-		public override void OnPointerExit(PointerEventData eventData)
-		{
 		}
 	}
 }

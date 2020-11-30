@@ -13,8 +13,9 @@ namespace Yorozu.UI
 	}
 
 	[Serializable]
-	public abstract class UniButtonColor : UniButtonModuleAbstract
+	public abstract class YorozuButtonColor : YorozuButtonModuleAbstract
 	{
+
 		[SerializeField]
 		[Range(0f, 1f)]
 		private float _fadeDuration = 0.1f;
