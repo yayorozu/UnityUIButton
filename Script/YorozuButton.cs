@@ -7,14 +7,14 @@ using UnityEngine.UI;
 
 namespace Yorozu.UI
 {
-	public class YorozuButton : Selectable, IPointerClickHandler, IEventSystemHandler
+	public class YorozuButton : Button
 	{
 		[SerializeReference]
-		private YorozuButtonModuleAbstract[] _modules = new YorozuButtonModuleAbstract[0];
+		private YorozuButtonModule[] _modules = new YorozuButtonModule[0];
 
 #if UNITY_EDITOR
 
-		internal YorozuButtonModuleAbstract[] Modules
+		internal YorozuButtonModule[] EditorModules
 		{
 			get => _modules;
 			set => _modules = value;
@@ -22,44 +22,62 @@ namespace Yorozu.UI
 
 		protected override void OnValidate()
 		{
+			transition = Transition.None;
+			
+			foreach (var module in _modules)
+				module?.SetUp(this, ConvertState(currentSelectionState));
+			
 			base.OnValidate();
-
-			foreach (var part in _modules)
-				part.SetUp(this);
 		}
 
 #endif
 
-		private bool _isPress;
-		private bool _waitPress;
+		private Coroutine _pressCoroutine = null;
+		
+		/// <summary>
+		/// イベントをハンドルしづらいので拡張を呼び出ししてもらう
+		/// </summary>
+		[Obsolete("Use SetClick instead.")]
+		public new ButtonClickedEvent onClick;
 
-		private Action _clickAction;
+		private Action _clickEvent;
 
 		protected override void Awake()
 		{
 			YorozuButtonManager.Register(this);
 			base.Awake();
 			transition = Transition.None;
-			_isPress = false;
-
+			
+			var s = ConvertState(currentSelectionState);
 			foreach (var part in _modules)
-				part.SetUp(this);
+				part.SetUp(this, s);
+			
+			base.onClick.AddListener(() => _clickEvent?.Invoke());
 		}
 
 		protected override void OnDestroy()
 		{
-			base.OnDestroy();
 			YorozuButtonManager.Unregister(this);
-			_clickAction = null;
+			_clickEvent = null;
+			
+			foreach (var part in _modules)
+				part.DestroyFromOwner();
+			base.OnDestroy();
 		}
 
+		/// <summary>
+		/// Unity Event Update
+		/// </summary>
 		private void Update()
 		{
 			foreach (var module in _modules)
 				module.UpdateFromOwner();
 		}
 
-		public bool TryGetModule<T>(out T findModule) where T : YorozuButtonModuleAbstract
+		/// <summary>
+		/// モジュールの取得
+		/// </summary>
+		public bool TryGetModule<T>(out T findModule) where T : YorozuButtonModule
 		{
 			var data = _modules.FirstOrDefault(p => p.GetType() == typeof(T));
 			if (data == null)
@@ -72,126 +90,182 @@ namespace Yorozu.UI
 			return true;
 		}
 
-		public void SetInteractable(bool enable)
+		/// <summary>
+		/// クリック処理を登録
+		/// </summary>
+		public void SetClickEvent(Action action)
 		{
-			interactable = enable;
-			foreach (var part in _modules)
-				part.SetInteractable(enable);
+			_clickEvent = action;
 		}
 
-		public void SetClickAction(Action action)
+		/// <summary>
+		/// クリック処理を解除
+		/// </summary>
+		public void RemoveClickEvent()
 		{
-			_clickAction = action;
+			_clickEvent = null;
 		}
 
-		public void RemoveClickAction()
+		/// <summary>
+		/// クリック処理を実行する
+		/// </summary>
+		public void ClickInvoke()
 		{
-			_clickAction = null;
-		}
-
-		public void DoClick()
-		{
-			_clickAction?.Invoke();
-		}
-
-		private void Press()
-		{
-			// 連打同時押し対応
-			if (!YorozuButtonManager.Clickable)
-				return;
-
-			if (_waitPress)
-				return;
-
-			if (!interactable)
-				return;
-
-			if (!IsActive())
-				return;
-
-			foreach (var part in _modules)
-				part.Press();
-
 			YorozuButtonManager.ClickRegister();
-			StartCoroutine(PressImpl());
+			UISystemProfilerApi.AddMarker("Button.onClick", this);
+			base.onClick.Invoke();
 		}
 
-		private IEnumerator PressImpl()
-		{
-			_waitPress = true;
-			while (true)
-			{
-				// 全パーツがクリック処理するまで待つ
-				foreach (var part in _modules)
-				{
-					if (part.IsBreakClick())
-					{
-						_waitPress = false;
-						yield break;
-					}
-
-					if (!part.Clickable)
-						continue;
-				}
-				break;
-			}
-
-			DoClick();
-			_waitPress = false;
-		}
-
-		public void OnPointerClick(PointerEventData eventData)
+		public override void OnPointerClick(PointerEventData eventData)
 		{
 			if (eventData.button != PointerEventData.InputButton.Left)
 				return;
 
-			Press();
+			// 連打同時押し対応
+			if (!YorozuButtonManager.Clickable ||
+			    _pressCoroutine != null || 
+			    !IsActive() || 
+			    !IsInteractable()
+			   )
+				return;
+			
+			foreach (var part in _modules)
+				part.Press();
+			
+			_pressCoroutine = StartCoroutine(WaitPress());
+		}
+		
+		/// <summary>
+		/// モジュールの動作を待つ
+		/// </summary>
+		private IEnumerator WaitPress()
+		{
+			bool any;
+			while (true)
+			{
+				any = false;
+				yield return null;
+					
+				// 全パーツがクリック処理するまで待つ
+				foreach (var m in _modules)
+				{
+					if (m.CurrentState == YorozuButtonModule.State.Break)
+					{
+						_pressCoroutine = null;
+						yield break;
+					}
+				}
+
+				foreach (var m in _modules)
+				{
+					if (m.CurrentState == YorozuButtonModule.State.Processing)
+					{
+						any = true;
+						break;
+					}
+				}
+
+				if (any)
+					continue;
+					
+				break;
+			}
+
+			YorozuButtonManager.PlaySound(this);
+			ClickInvoke();
+			_pressCoroutine = null;
 		}
 
-		private void Enter(PointerEventData eventData)
+		/// <summary>
+		/// Stateの変化を監視
+		/// </summary>
+		protected override void DoStateTransition(SelectionState state, bool instant)
 		{
-			if (_isPress)
+			base.DoStateTransition(state, instant);
+			
+			if (!gameObject.activeInHierarchy)
 				return;
 
-			_isPress = true;
+			var s = ConvertState(state);
+			
 			foreach (var module in _modules)
-				module.OnPointerEnter(eventData);
+				module?.DoStateTransition(s, instant);
 		}
 
-		private void Exit(PointerEventData eventData)
+		private static YorozuButtonModule.SelectionState ConvertState(SelectionState state)
 		{
-			if (!_isPress)
-				return;
-
-			_isPress = false;
-			foreach (var module in _modules)
-				module.OnPointerExit(eventData);
+			switch (state)
+			{
+				case SelectionState.Highlighted:
+					return YorozuButtonModule.SelectionState.Highlighted;
+				case SelectionState.Pressed:
+					return YorozuButtonModule.SelectionState.Pressed;
+				case SelectionState.Selected:
+					return YorozuButtonModule.SelectionState.Selected;
+				case SelectionState.Disabled:
+					return YorozuButtonModule.SelectionState.Disabled;
+				case SelectionState.Normal:
+					return YorozuButtonModule.SelectionState.Normal;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(state), state, null);
+			}
 		}
 
+#region EventSystems
+		
+		/// <summary>
+		/// 状態がわかればいいので処理をまとめる
+		/// </summary>
+		private bool isPointerDown = false;
+		private bool isPointerInside = false;
+		
 		public override void OnPointerUp(PointerEventData eventData)
 		{
 			base.OnPointerUp(eventData);
-			Exit(eventData);
+			
+			if (eventData.button != PointerEventData.InputButton.Left)
+				return;
+
+			isPointerDown = false;
+			foreach (var module in _modules)
+				module.OnPointerChange(eventData, isPointerDown, isPointerInside);
 		}
 
 		public override void OnPointerDown(PointerEventData eventData)
 		{
 			base.OnPointerDown(eventData);
-			Enter(eventData);
+			
+			if (eventData.button != PointerEventData.InputButton.Left)
+				return;
+			
+			isPointerDown = true;
+			foreach (var module in _modules)
+				module.OnPointerChange(eventData, isPointerDown, isPointerInside);
 		}
 
-#if false
 		public override void OnPointerEnter(PointerEventData eventData)
 		{
 			base.OnPointerEnter(eventData);
-			Enter(eventData);
+			if (eventData == null || eventData.pointerEnter == null || eventData.pointerEnter.GetComponentInParent<Selectable>() != this)
+				return;
+
+			isPointerInside = true;
+			foreach (var module in _modules)
+				module.OnPointerChange(eventData, isPointerDown, isPointerInside);
 		}
-#endif
 
 		public override void OnPointerExit(PointerEventData eventData)
 		{
 			base.OnPointerExit(eventData);
-			Exit(eventData);
+			if (eventData == null || eventData.pointerEnter == null || eventData.pointerEnter.GetComponentInParent<Selectable>() != this)
+				return;
+			
+			isPointerInside = false;
+			foreach (var module in _modules)
+				module.OnPointerChange(eventData, isPointerDown, isPointerInside);
 		}
+		
+#endregion
+		
 	}
 }

@@ -8,7 +8,7 @@ public class ButtonSample : MonoBehaviour
 
 	private void Awake()
 	{
-		button.SetClickAction(Click);
+		button.SetClickEvent(Click);
 		if (button.TryGetModule<ButtonModuleLongClick>(out var module))
 		{
 			module.SetAction(LongClick);

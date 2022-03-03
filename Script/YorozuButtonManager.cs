@@ -2,51 +2,41 @@ using System.Collections.Generic;
 
 namespace Yorozu.UI
 {
-	public static class YorozuButtonManager
+	/// <summary>
+	/// ボタンが押された際のイベント
+	/// </summary>
+	public delegate void ButtonSound(string key);
+	
+	public static partial class YorozuButtonManager
 	{
-		private static List<YorozuButton> _activeButtons = new List<YorozuButton>(20);
-
+		/// <summary>
+		/// 現在アクティブなボタン一覧
+		/// </summary>
 		public static IEnumerable<YorozuButton> Buttons => _activeButtons;
 
-		private static float _clickLockTime = 0.5f;
-
 		/// <summary>
-		/// 最後にクリックした時間
+		/// サウンドをセットしているボタンをクリックした際のイベント
 		/// </summary>
-		private static float _lastClickTime = 0f;
-
-		/// <summary>
-		/// 最後にクリックしてから一定時間経過しているか
-		/// </summary>
-		internal static bool Clickable => UnityEngine.Time.realtimeSinceStartup - _lastClickTime > _clickLockTime;
-
-		internal static void Register(YorozuButton button)
+		public static event ButtonSound SoundEvent  
 		{
-			if (_activeButtons.Contains(button))
-				return;
-
-			_activeButtons.Add(button);
+			add => _soundEvent += value;
+			remove => _soundEvent -= value;
 		}
-
-		internal static void Unregister(YorozuButton button)
-		{
-			if (!_activeButtons.Contains(button))
-				return;
-
-			_activeButtons.Remove(button);
-		}
-
-		internal static void ClickRegister()
-		{
-			_lastClickTime = UnityEngine.Time.realtimeSinceStartup;
-		}
-
+		
 		/// <summary>
 		/// 連続クリック時間を更新
 		/// </summary>
 		public static void SetClickLockTime(float time)
 		{
 			_clickLockTime = time;
+		}
+
+		/// <summary>
+		/// リアクションの上書き
+		/// </summary>
+		public static void SetReaction(IReactionData data)
+		{
+			ReactionData = data;
 		}
 	}
 }

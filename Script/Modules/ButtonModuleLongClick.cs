@@ -5,38 +5,31 @@ using UnityEngine.EventSystems;
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class ButtonModuleLongClick : YorozuButtonModuleAbstract
+	public class ButtonModuleLongClick : YorozuButtonModule
 	{
-		[SerializeField]
-		private float _handleTime = 1f;
+		private float _handleTime => YorozuButtonManager.Setting.longClickTime;
 
 		private float _time;
 		private bool _isPress;
 		private Action _action;
-		private bool _isBreak;
-
-		public override void OnPointerEnter(PointerEventData eventData)
+		protected override void Prepare(SelectionState state)
 		{
-			_time = 0f;
-			_clickable = false;
-			_isPress = true;
-			_isBreak = false;
+			// 長押しが有効な場合は通常のクリック処理は無効
+			base.state = State.Break;
 		}
 
-		public override void OnPointerExit(PointerEventData eventData)
+		public override void OnPointerChange(PointerEventData eventData, bool isDown, bool isInside)
 		{
-			_isBreak = true;
-			_clickable = true;
-			_isPress = false;
-			if (_time < _handleTime)
+			if (isDown && isInside)
 			{
-				_main.DoClick();
+				_time = 0f;
 			}
-		}
-
-		public override bool IsBreakClick()
-		{
-			return _isBreak;
+			else if (isInside && !isDown && _isPress)
+			{
+				owner.ClickInvoke();
+			}
+				
+			_isPress = isDown && isInside; 
 		}
 
 		protected override void Update()
@@ -50,10 +43,11 @@ namespace Yorozu.UI
 				return;
 			
 			_time += Time.deltaTime;
+			// 長押し判定を通過するので通常のクリックを破棄
 			if (_time >= _handleTime)
 			{
+				_isPress = false;
 				_action?.Invoke();
-				_isBreak = true;
 			}
 		}
 

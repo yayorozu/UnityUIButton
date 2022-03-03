@@ -1,91 +1,100 @@
 ﻿using System;
-using Yorozu.Easing;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Yorozu.UI
 {
 	[Serializable]
-	public class ButtonModuleReaction : YorozuButtonModuleAbstract
+	public class ButtonModuleReaction : YorozuButtonModule
 	{
-		[SerializeField]
-		private ButtonReactionData _data;
-
+		private enum ReactionState
+		{
+			Ping,
+			Pong,
+		}
+		
+		private IReactionData _data;
+		
 		private float _time;
 		private Vector3 _defaultScale;
 		private Vector2 _defaultPivot;
 
-		private bool _isEnter;
-
-		protected override void Prepare()
+		private ReactionState _reactionState;
+		
+		protected override void Prepare(SelectionState state)
 		{
-			_defaultScale = _rect.localScale;
-			_defaultPivot = _rect.pivot;
+			_defaultScale = rectTransform.localScale;
+			_defaultPivot = rectTransform.pivot;
 
-			if (_data == null)
-			{
-				_data = ScriptableObject.CreateInstance<ButtonReactionData>();
-				_data.Init();
-			}
+			_data = YorozuButtonManager.ReactionData;
+			_time = _data.ReactionTime;
+			_reactionState = ReactionState.Pong;
 		}
 
 		private void ResetRect()
 		{
 			SetPivot(_defaultPivot);
-			_rect.localScale = _defaultScale;
+			rectTransform.localScale = _defaultScale;
 		}
-
-		public override void SetInteractable(bool enable)
+		
+		private void DoReaction(ReactionState reactionState)
 		{
-			ResetRect();
-		}
-
-		public override void OnPointerEnter(PointerEventData eventData)
-		{
-			if (_isEnter)
+			if (!owner.IsInteractable())
+				return;
+			
+			if (_reactionState == reactionState) 
+				return;
+			
+			if (reactionState == ReactionState.Pong && _reactionState != ReactionState.Ping)
 				return;
 
-			_isEnter = true;
-			_time = _data.ReactionTime;
-			SetPivot(Vector2.one / 2f);
+			_reactionState = reactionState;
+			_time = 0f;
+			
+			if (_reactionState == ReactionState.Pong && YorozuButtonManager.Setting.timing == YorozuButtonSetting.ClickTiming.Pressed)
+			{
+				state = State.Clickable;
+			}
 		}
 
-		public override void OnPointerExit(PointerEventData eventData)
+		public override void OnPointerChange(PointerEventData eventData, bool isDown, bool isInside)
 		{
-			if (!_isEnter)
-				return;
+			DoReaction(isDown && isInside ? ReactionState.Ping : ReactionState.Pong);
+		}
 
-			_isEnter = false;
-			_time = _data.ReactionTime;
+		public override void DoStateTransition(SelectionState state, bool instant)
+		{
+			switch (state)
+			{
+				case SelectionState.Disabled:
+					ResetRect();
+					break;
+			}
 		}
 
 		protected override void Update()
 		{
-			if (_time <= 0f)
+			if (_time >= _data.ReactionTime)
 				return;
 
-			SetScale((_data.ReactionTime - _time) / _data.ReactionTime);
-			_time -= Time.deltaTime;
+			_data.DoReaction(rectTransform,
+				_time / _data.ReactionTime,
+				_reactionState == ReactionState.Ping, 
+				_defaultScale
+			);
 
-			_clickable = _time <= 0f;
-			if (_time <= 0f && !_isEnter)
+			_time += Time.deltaTime;
+
+			if (YorozuButtonManager.Setting.timing != YorozuButtonSetting.ClickTiming.Pressed)
+			{
+				state = _time <= 0f ? State.Clickable : State.Processing;
+			}
+
+			if (_time < _data.ReactionTime)
+				return;
+			
+			if (_reactionState == ReactionState.Pong)
 				ResetRect();
-		}
-
-		/// <summary>
-		/// Scale を変更する
-		/// </summary>
-		private void SetScale(float t)
-		{
-			var type = _isEnter ? _data.ReactionEase : _data.ReturnEase;
-			var begin = _isEnter ? _defaultScale : _defaultScale * _data.ReactionScale;
-			var end = _isEnter ? _defaultScale * _data.ReactionScale : _defaultScale;
-
-			_rect.localScale = new Vector3(
-				Ease.Eval(type, t, _data.ReactionTime, begin.x, end.x),
-				Ease.Eval(type, t, _data.ReactionTime, begin.y, end.y),
-				1
-				);
 		}
 
 		/// <summary>
@@ -93,11 +102,11 @@ namespace Yorozu.UI
 		/// </summary>
 		private void SetPivot(Vector2 v)
 		{
-			var size = _rect.rect.size;
-			var deltaPivot = _rect.pivot - v;
+			var size = rectTransform.rect.size;
+			var deltaPivot = rectTransform.pivot - v;
 			var deltaPosition = new Vector3(deltaPivot.x * size.x, deltaPivot.y * size.y);
-			_rect.pivot = v;
-			_rect.localPosition -= deltaPosition;
+			rectTransform.pivot = v;
+			rectTransform.localPosition -= deltaPosition;
 		}
 	}
 }
