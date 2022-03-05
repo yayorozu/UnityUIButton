@@ -48,6 +48,7 @@ namespace Yorozu.UI
 			if (reactionState == ReactionState.Pong && _reactionState != ReactionState.Ping)
 				return;
 
+			SetPivot(Vector2.one / 2f); 
 			_reactionState = reactionState;
 			_time = 0f;
 			
