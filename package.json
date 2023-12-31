@@ -1,0 +1,14 @@
+{
+  "name": "yorozu.ui-button",
+  "version": "1.0.0",
+  "displayName": "Yorozu UI Button",
+  "description": "UI Button Library",
+  "keywords": [
+    "Yorozu"
+  ],
+  "author": {
+    "name": "Yorozu",
+    "email": "hatch.tech.eng@gmail.com",
+    "url": "https://github.com/yayorozu"
+  }
+}

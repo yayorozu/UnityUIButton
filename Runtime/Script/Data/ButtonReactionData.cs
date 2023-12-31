@@ -1,6 +1,5 @@
 ﻿using Yorozu.Easing;
 using UnityEngine;
-
 namespace Yorozu.UI
 {
 	public interface IReactionData
