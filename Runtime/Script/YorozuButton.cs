@@ -95,13 +95,18 @@ namespace Yorozu.UI
 		/// </summary>
 		public void SetClickEvent(Action action)
 		{
-			_clickEvent = action;
+			_clickEvent += action;
 		}
 
 		/// <summary>
 		/// クリック処理を解除
 		/// </summary>
-		public void RemoveClickEvent()
+		public void RemoveClickEvent(Action action)
+		{
+			_clickEvent -= action;
+		}
+		
+		public void ClearClickEvent()
 		{
 			_clickEvent = null;
 		}
